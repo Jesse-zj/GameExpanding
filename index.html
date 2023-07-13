@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dream Expanding</title>
+  <script src="systemMessage.js"></script>
+  <style>
+    
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+    }
+
+    #conversation-container {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      height: calc(100vh - 80px);
+      overflow: auto;
+      color: #00ff00;
+      font-size: 1.2em;
+      background-color: #000;
+      border: 2px solid #00ff00;
+      border-radius: 15px;
+      margin-top: 20px;
+      box-shadow: 0 0 10px #00ff00;
+    }
+
+    .message {
+      margin: 10px;
+      white-space: pre-wrap;
+      border-radius: 15px;
+      padding: 10px;
+    }
+
+    .user {
+      text-align: right;
+      background-color: #1f1f1f;
+      color: #ffffff;
+      margin-left: 30%;
+    }
+
+    .assistant {
+      text-align: left;
+      background-color: #0b0b0b;
+      color: #00ff00;
+      margin-right: 30%;
+    }
+
+    #input-container {
+      display: flex;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: black;
+    }
+
+    #input {
+      flex-grow: 1;
+      padding: 10px;
+      margin-right: 10px;
+      border: 2px solid #00ff00;
+      border-radius: 5px;
+      background-color: black;
+      color: #ffffff;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: 2px solid #00ff00;
+      border-radius: 5px;
+      background-color: black;
+      color: #00ff00;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #00ff00;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="background-audio" src="background.mp3" loop></audio>
+
+  <div id="conversation-container"></div>
+
+  <div id="input-container">
+    <input type="text" id="input" placeholder="Type here...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    let conversationHistory = [
+      { 'role': 'system', 'content': systemMessage }
+    ];
+
+    async function sendMessage(question) {
+      const inputElement = document.getElementById('input');
+
+      // If no question is provided, use the input element's value
+      question = question || inputElement.value.trim();
+  
+      if (question === '') {
+        return;
+      }
+
+      appendMessage('user', question);
+      conversationHistory.push({ 'role': 'user', 'content': question });
+      inputElement.value = '';
+
+      const response = await ask(question);
+      const answer = response.choices[0].message.content;
+      appendMessage('assistant', answer);
+      conversationHistory.push({ 'role': 'assistant', 'content': answer });
+
+      // Scroll to bottom
+      document.getElementById('conversation-container').scrollTop = document.getElementById('conversation-container').scrollHeight;
+    }
+    async function sendMessage(question) {
+      const inputElement = document.getElementById('input');
+      const audioElement = document.getElementById('background-audio');
+
+      // If no question is provided, use the input element's value
+      question = question || inputElement.value.trim();
+  
+      if (question === '') {
+        return;
+      }
+
+      appendMessage('user', question);
+      conversationHistory.push({ 'role': 'user', 'content': question });
+      inputElement.value = '';
+
+      const response = await ask(question);
+      const answer = response.choices[0].message.content;
+      appendMessage('assistant', answer);
+      conversationHistory.push({ 'role': 'assistant', 'content': answer });
+
+      // Scroll to bottom
+      document.getElementById('conversation-container').scrollTop = document.getElementById('conversation-container').scrollHeight;
+
+      // Play the audio
+      audioElement.play();
+    }
+
+    async function ask(question) {
+      const API_KEY = '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';
+      const model = 'gpt-3.5-turbo';
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: conversationHistory
+        })
+      });
+
+      const data = await response.json();
+      return data;
+    }
+
+    function appendMessage(role, content) {
+      const conversationDiv = document.getElementById('conversation-container');
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      messageDiv.classList.add(role);
+      messageDiv.textContent = content;
+      conversationDiv.appendChild(messageDiv);
+    }
+
+    window.onload = function() {
+      // The message you want to send initially
+      sendMessage('hello,who are you');
+    };
+  </script>
+</body>
+</html>
